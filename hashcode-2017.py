@@ -16,7 +16,58 @@ def process_file(input_file):
     global cache_servers
 
     with open(input_file, 'r') as f:
-        # TODO Implement.
+        line = f.readline()
+        # Read initial parameters.
+        values = line.split(" ")
+        num_videos = int(values[0])
+        num_endpoints = int(values[1])
+        num_requests = int(values[2])
+        num_caches = int(values[3])
+        cache_server_size = int(values[4])
+        # Create cache servers.
+        identifier = 0
+        for i in range(0, num_caches):
+            c = CacheServer(identifier, cache_server_size)
+            cache_servers.append(c)
+        # Read videos.
+        line = f.readline()
+        values = line.split(" ")
+        identifier = 0
+        for v in values:
+            video = Video(identifier, int(v))
+            videos.append(video)
+            identifier += 1
+        # Read endpoints.
+        identifier = 0
+        for i in range(0, num_endpoints):
+            line = f.readline()
+            values = line.split(" ")
+            dc_latency = int(values[0]) * 1000
+            n_caches = int(values[1])
+            endpoint = Endpoint(identifier, dc_latency)
+            endpoints.append(endpoint)
+            # Connect the cache servers.
+            for j in range(0, n_caches):
+                line = f.readline()
+                values = line.split(" ")
+                c_id = int(values[0])
+                latency = int(values[1]) * 1000
+                cs = cache_servers[c_id]
+                endpoint.add_cache_server(cs, latency)
+                cache_servers.append(cs)
+            identifier += 1
+        # Read requests.
+        identifier = 0
+        for i in range(0, num_requests):
+            line = f.readline()
+            values = line.split(" ")
+            video_index = int(values[0])
+            endpoint_index = int(values[1])
+            n_requests = int(values[2])
+            video = videos[video_index]
+            endpoint = endpoints[endpoint_index]
+            request = Request(identifier, n_requests, endpoint, video)
+            identifier += 1
 
 
 class CacheServer(object):
@@ -52,7 +103,7 @@ class CacheServer(object):
         self.current_capacity -= video.get_size()
 
     def has_video(self, video):
-        return in self.videos[video.get_identifier()]
+        return video.get_identifier() in self.videos[video.get_identifier()]
 
     def fits(self, video):
         if video.get_size() + self.current_capacity > self.max_capacity:
@@ -76,7 +127,7 @@ class Endpoint(object):
     def latency_to_datacenter(self):
         return self.latency_to_datacenter
 
-    def add_cache_servers(self, cache_server, latency):
+    def add_cache_server(self, cache_server, latency):
         cs_identifier = cache_server.get_identifier()
         self.close_cache_servers[cs_identifier] = cache_server
         self.close_cache_server_latencies[cs_identifier] = latency
@@ -88,7 +139,7 @@ class Endpoint(object):
         return self.close_cache_servers
 
     def has_cache_server(self, cache_server):
-        return in self.close_cache_servers[cache_server.get_identifier()]
+        return cache_server.get_identifier() in self.close_cache_servers[cache_server.get_identifier()]
 
     def add_request(self, request):
         self.requests.append(request)
@@ -155,6 +206,8 @@ class Request(object):
 
         return best_cache_server
 
+
+process_file("videos_worth_spreading.in")
 
 num_cache_servers = 0
 
