@@ -46,6 +46,7 @@ class Endpoint(object):
         self.identifier = identifier
         self.latency_to_datacenter = latency_to_datacenter
         self.close_cache_servers = {}
+        self.close_cache_server_latencies = {}
 
     def get_identifier(self):
         return self.identifier
@@ -53,8 +54,16 @@ class Endpoint(object):
     def latency_to_datacenter(self):
         return self.latency_to_datacenter
 
-    def add_cache_servers(self, cache_server):
-        self.close_cache_servers[cahce_server.get_identifier()] = cache_server
+    def add_cache_servers(self, cache_server, latency):
+        cs_identifier = cache_server.get_identifier()
+        self.close_cache_servers[cs_identifier] = cache_server
+        self.close_cache_server_latencies[cs_identifier] = latency
+
+    def get_cache_server_latency(self, cache_server):
+        return self.close_cache_server_latencies[cache_server.get_identifier()]
+
+    def get_cache_servers(self):
+        return self.close_cache_servers
 
     def has_cache_server(self, cache_server):
         return in self.close_cache_servers[cache_server.get_identifier()]
@@ -80,6 +89,21 @@ class Requests(object):
         self.num_requests = num_requests
         self.endpoint = endpoint
         self.video = video
+        self.cache_server = None
+
+    def set_cache_server(self, cache_server):
+        self.cache_server = cache_server
+
+    def get_cache_server(self):
+        return self.cache_server
+
+    def latency_to_datacenter(self):
+        cache_server = self.endpoint.get_cache_servers()
+        min_latency = self.endpoint.latency_to_datacenter()
+        for k in cache_server:
+            pass
+
+        return self.endpoint.latency_to_datacenter - self.
 
     def get_video(self):
         return self.video
@@ -92,3 +116,9 @@ class Requests(object):
 
     def num_requests(self):
         return self.num_requests
+
+
+videos = []
+requests = []
+endpoints = []
+cache_servers = []
